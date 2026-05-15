@@ -1,0 +1,35 @@
+# Podfile — integrates the Flutter add-to-app module into the
+# native iOS project. Run `pod install` AFTER the Flutter dev
+# creates ../flutter_module via:
+#
+#   flutter create --template=module ../flutter_module
+#
+# Then open NativeFlutter.xcworkspace (not the .xcodeproj).
+
+platform :ios, '13.0'
+
+# Path to the flutter_module sibling folder. Adjust if the Flutter
+# dev places it elsewhere.
+flutter_application_path = '../flutter_module'
+load File.join(flutter_application_path, '.ios', 'Flutter', 'podhelper.rb')
+
+target 'NativeFlutter' do
+  use_frameworks!
+
+  install_all_flutter_pods(flutter_application_path)
+end
+
+post_install do |installer|
+  flutter_post_install(installer) if defined?(flutter_post_install)
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Match the host app's deployment target so the Flutter pods
+      # don't warn about being newer than the host.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      # Flutter's "Run Flutter Build" script reads/writes outside
+      # Xcode's sandbox area. Must be NO for add-to-app builds.
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+    end
+  end
+end

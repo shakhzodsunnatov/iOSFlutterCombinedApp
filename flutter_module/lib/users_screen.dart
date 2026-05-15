@@ -225,10 +225,19 @@ class _UserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isFlutter = user.isFromFlutter;
+    final isAndroid = user.isFromAndroid;
 
-    final sourceColor = isFlutter ? const Color(0xFF0468D7) : const Color(0xFF34C759);
-    final sourceLabel = isFlutter ? 'Flutter' : 'iOS';
-    final sourceIcon = isFlutter ? Icons.flutter_dash : Icons.phone_iphone;
+    final sourceColor = isFlutter
+        ? const Color(0xFF0468D7)
+        : isAndroid
+            ? const Color(0xFF3DDC84)
+            : const Color(0xFF34C759);
+    final sourceLabel = isFlutter ? 'Flutter' : isAndroid ? 'Android' : 'iOS';
+    final sourceIcon = isFlutter
+        ? Icons.flutter_dash
+        : isAndroid
+            ? Icons.android
+            : Icons.phone_iphone;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

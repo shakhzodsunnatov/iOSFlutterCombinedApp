@@ -17,6 +17,7 @@ class UserDto {
   final DateTime createdAt;
 
   bool get isFromFlutter => source == 'flutter';
+  bool get isFromAndroid => source == 'android';
 
   static UserDto? fromMap(Object? raw) {
     if (raw is! Map) return null;

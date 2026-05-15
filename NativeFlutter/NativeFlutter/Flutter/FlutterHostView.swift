@@ -16,18 +16,19 @@ import SwiftUI
 import Flutter
 
 struct FlutterHostView: UIViewControllerRepresentable {
-    let initialRoute: String?
+    let route: String
 
-    init(initialRoute: String? = nil) {
-        self.initialRoute = initialRoute
+    init(route: String = "users") {
+        self.route = route
     }
 
     func makeUIViewController(context: Context) -> FlutterViewController {
         let engine = FlutterEngineManager.shared.engine
         let vc = FlutterViewController(engine: engine, nibName: nil, bundle: nil)
-        if let route = initialRoute {
-            vc.setInitialRoute(route)
-        }
+        // Tell Flutter which screen to show. Sent right after the VC
+        // attaches so the Navigator updates before the first frame
+        // is on-screen — no visible flash of the wrong route.
+        FlutterEngineManager.presentRoute(route)
         return vc
     }
 
@@ -38,10 +39,10 @@ struct FlutterHostView: UIViewControllerRepresentable {
 
 // Placeholder shown until the Flutter dev integrates the module.
 struct FlutterHostView: View {
-    let initialRoute: String?
+    let route: String
 
-    init(initialRoute: String? = nil) {
-        self.initialRoute = initialRoute
+    init(route: String = "users") {
+        self.route = route
     }
 
     var body: some View {

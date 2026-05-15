@@ -40,15 +40,24 @@ final class FlutterEngineManager {
     static func warmUp() {
         _ = FlutterEngineManager.shared
     }
+
+    /// Tell Flutter which screen to land on. Flutter listens for
+    /// `presentRoute` on the users channel and routes its Navigator.
+    /// Routes: `"users"` (default list), `"create"` (new-user form
+    /// auto-closes back to iOS on save).
+    static func presentRoute(_ route: String) {
+        shared.methodBridge.invoke(method: "presentRoute", arguments: route)
+    }
 }
 
 #else
 
-// Flutter SDK not yet integrated. Calling warmUp() is a no-op so
-// the rest of the app keeps building.
+// Flutter SDK not yet integrated. Both calls are no-ops so the
+// rest of the app keeps building.
 @MainActor
 enum FlutterEngineManager {
     static func warmUp() {}
+    static func presentRoute(_ route: String) {}
 }
 
 #endif

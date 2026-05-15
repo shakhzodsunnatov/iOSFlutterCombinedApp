@@ -13,7 +13,7 @@ import SwiftUI
 struct UsersListView: View {
     @EnvironmentObject private var store: UsersStore
     @State private var isCreatingUser = false
-    @State private var isShowingFlutter = false
+    @State private var flutterRoute: String?  // nil → not pushed; "users"/"create" → pushed at that route
 
     var body: some View {
         NavigationStack {
@@ -36,7 +36,7 @@ struct UsersListView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                openFlutterButton
+                bottomBar
                     .padding(.horizontal)
                     .padding(.vertical, 12)
                     .background(.bar)
@@ -45,19 +45,23 @@ struct UsersListView: View {
                 CreateUserSheet()
                     .environmentObject(store)
             }
-            .navigationDestination(isPresented: $isShowingFlutter) {
-                FlutterHostView()
-                    .ignoresSafeArea(.container, edges: .bottom)
-                    .navigationTitle("Flutter")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Close") { isShowingFlutter = false }
-                        }
-                    }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { flutterRoute != nil },
+                    set: { if !$0 { flutterRoute = nil } }
+                )
+            ) {
+                // Flutter takes the whole screen — iOS nav bar and
+                // back button are hidden; the only way back is via
+                // Flutter's own close button (which calls closeFlutter
+                // on the bridge → NotificationCenter → flutterRoute = nil).
+                FlutterHostView(route: flutterRoute ?? "users")
+                    .ignoresSafeArea()
+                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarBackButtonHidden(true)
             }
             .onReceive(NotificationCenter.default.publisher(for: .flutterRequestedClose)) { _ in
-                isShowingFlutter = false
+                flutterRoute = nil
             }
         }
     }
@@ -94,16 +98,29 @@ struct UsersListView: View {
         }
     }
 
-    private var openFlutterButton: some View {
-        Button {
-            isShowingFlutter = true
-        } label: {
-            Label("Open Flutter Screen", systemImage: "arrow.up.right.square")
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+    private var bottomBar: some View {
+        VStack(spacing: 10) {
+            Button {
+                flutterRoute = "users"
+            } label: {
+                Label("Open Flutter Screen", systemImage: "arrow.up.right.square")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+
+            Button {
+                flutterRoute = "create"
+            } label: {
+                Label("Add User via Flutter", systemImage: "plus.rectangle.on.rectangle")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .tint(.cyan)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
     }
 }
 

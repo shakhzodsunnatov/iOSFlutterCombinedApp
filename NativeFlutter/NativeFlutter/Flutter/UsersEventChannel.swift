@@ -59,11 +59,18 @@ final class UsersEventChannel: NSObject {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 events(self.store.bridgeDictionaries())
+                // `@Published` fires with willSet semantics — the
+                // emitted value is the NEW array, but `store.users`
+                // still holds the old one at this point. So map the
+                // closure parameter directly instead of re-querying
+                // the store, otherwise the Flutter side lags by one
+                // mutation.
                 self.cancellable = self.store.$users
-                    .dropFirst() // skip the initial value, already sent above
-                    .sink { [weak self] _ in
+                    .dropFirst()
+                    .sink { [weak self] newUsers in
                         guard let self else { return }
-                        self.sink?(self.store.bridgeDictionaries())
+                        let payload = newUsers.map { $0.toBridgeDictionary() }
+                        self.sink?(payload)
                     }
             }
             return nil

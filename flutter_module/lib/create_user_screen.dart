@@ -3,7 +3,14 @@ import 'package:flutter/services.dart';
 import 'users_channel.dart';
 
 class CreateUserScreen extends StatefulWidget {
-  const CreateUserScreen({super.key});
+  const CreateUserScreen({super.key, this.popOnSave = false});
+
+  /// When true, after a successful save the screen asks the iOS host
+  /// to dismiss the whole Flutter view (via `closeFlutter`) instead of
+  /// popping its own Navigator route. Set this when the screen was
+  /// opened directly from iOS, so the user lands back on the SwiftUI
+  /// users list.
+  final bool popOnSave;
 
   @override
   State<CreateUserScreen> createState() => _CreateUserScreenState();
@@ -43,7 +50,14 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
         email: _emailCtrl.text.trim(),
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      if (widget.popOnSave) {
+        // Asks iOS to dismiss the embedded Flutter view. The host
+        // listens for `closeFlutter` on the bridge and pops the
+        // NavigationStack destination.
+        await UsersChannel.closeFlutter();
+      } else {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (!mounted) return;
       final msg = e is PlatformException ? (e.message ?? 'Create failed') : 'Create failed';

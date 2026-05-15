@@ -12,9 +12,8 @@
 //    - deleteUser({id})                        -> bool
 //    - closeFlutter()                          -> null   (asks iOS to pop the Flutter screen)
 //
-//  Method Swift can call on Flutter (rare — most updates flow through
-//  the EventChannel):
-//    - onSessionExpired                        // example, not wired
+//  Methods Swift calls on Flutter:
+//    - presentRoute(String)                    // "users" | "create"
 //
 
 import Foundation
@@ -48,6 +47,12 @@ final class UsersBridgeChannel {
                 self?.handle(call: call, result: result)
             }
         }
+    }
+
+    /// Swift → Flutter. Used by `FlutterEngineManager.presentRoute(_:)`
+    /// to tell the Flutter side which screen to land on.
+    func invoke(method: String, arguments: Any?) {
+        channel.invokeMethod(method, arguments: arguments)
     }
 
     private func handle(call: FlutterMethodCall, result: @escaping FlutterResult) {
